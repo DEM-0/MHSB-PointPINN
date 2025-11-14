@@ -1,0 +1,2 @@
+# 忽略 node_modules 目录及其所有子文件/子目录
+node_modules/

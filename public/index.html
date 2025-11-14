@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>颈动脉蹼血流动力学参数预测平台</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/STLLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/examples/js/loaders/STLLoader.js"></script>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            padding: 0px 60px;
+        }
+
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .container-fluid {
+            padding: 20px 30px;
+        }
+
+        .nav-link {
+            font-size: 1.5em !important;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        .navbar-brand {
+            font-size: 3em !important;
+            font-weight: 800 !important;
+            font-family: 'Times New Roman', Times, serif;
+            border: 3px solid #ff692e;
+            border-radius: 5px;
+            padding: 5px 10px;
+
+        }
+
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        #stlViewer {
+            width: 100%;
+            height: 500px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .echarts-container {
+            width: 100%;
+            height: 300px;
+            margin-top: 20px;
+        }
+
+        .section-title {
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #0d6efd;
+            color: #0d6efd;
+        }
+
+        .yishengshuru-title {
+            font-size: 1.5em;
+            font-weight: 800;
+            font-family: 'Times New Roman', Times, serif;
+            margin-bottom: 10px;
+        }
+
+        .model-info-card {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        #convert-point-show {
+            height: 500px;
+        }
+
+        .color-bar-box {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-content: space-around;
+            align-items: center;
+            margin-top: 38px;
+            /* height: 500px; */
+            border: 1px dotted #0d6efd;
+            border-radius: 5px;
+        }
+        #range-value{
+            font-size: 1.5em;
+            font-weight: 800;
+            font-family: 'Times New Roman', Times, serif;
+            display: block;
+            width: 100%;
+            background-color: #ffc596a6;
+            text-align: center;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .prediction-range-title{
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 2em;           
+            font-weight: 900;
+        }
+        #prediction-range{
+            padding: 20px;
+            background-color: #a3a3a3;
+            border: 1px solid burlywood;
+            border-radius: 5px;
+        }
+        #velocity-min-title {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: large;
+        }
+
+        #velocity-max-title {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: large;
+        }
+
+        #pressure-min-title {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: large;
+        }
+
+        #pressure-max-title {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: large;
+        }
+
+        .point-show-title {
+            margin-top: 20px;
+            font-size: 1.5em;
+            font-weight: 800;
+            font-family: 'Times New Roman', Times, serif;
+            padding: 10px;
+            border-top: 3px dotted blue;
+        }
+
+        .card-title {
+            padding: 10px;
+            font-weight: 800;
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 1.5em;
+            border-bottom: 3px dotted blue;
+        }
+
+        .patient-Info-box {
+            padding: 20px;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .model-info-card .card-body {
+            padding: 1.25rem;
+        }
+
+        .model-info-card .card-text {
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            /* padding: 5px; */
+        }
+        .yishengshuru-title{
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 2rem;
+            font-weight: 800;
+        }
+        .logs-title {
+            margin-top: 10px;
+            font-size: 1.5em !important;
+            font-weight: 800 !important;
+            font-family: 'Times New Roman', Times, serif;
+            text-align: center;
+        }
+        .model-info{
+            display: flex;
+            flex-direction: row;
+            justify-content: space-evenly;
+            align-items: center;
+        }
+        .point-cloud-box {
+            border-top: 5px dotted black;
+            margin-top: 10px;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        #point-cloud-logs {
+            background-color: #cececead;
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        #velocity-chart {
+            height: 500px;
+
+        }
+
+        #pressure-chart {
+            height: 500px;
+
+        }
+
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+        }
+
+        .form-label {
+            font-weight: 500;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .yishengshuru {
+            border: 1px solid #0d6efd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        #yishengshurukuang{
+            font-size: 2rem;
+            font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+        }
+        .jianyibutton{
+            font-size: 30px;
+        }
+
+        .loading-spinner {
+            width: 3rem;
+            height: 3rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 优化后的导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark"
+        style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#" style="font-size: 1.5rem; font-weight: 700; letter-spacing: 1px;">
+                <i class="fas fa-heartbeat me-2"></i>动脉血流动力学预测平台
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item mx-2">
+                        <a class="nav-link active" href="#patient-management"
+                            style="font-size: 1.1rem; font-weight: 500;">
+                            <i class="fas fa-user-injured me-1"></i>患者管理
+                        </a>
+                    </li>
+                    <li class="nav-item mx-2">
+                        <a class="nav-link" href="#file-upload" style="font-size: 1.1rem; font-weight: 500;">
+                            <i class="fas fa-file-upload me-1"></i>文件上传
+                        </a>
+                    </li>
+                    <li class="nav-item mx-2">
+                        <a class="nav-link" href="#3d-visualization" style="font-size: 1.1rem; font-weight: 500;">
+                            <i class="fas fa-cube me-1"></i>3D可视化
+                        </a>
+                    </li>
+                    <li class="nav-item mx-2">
+                        <a class="nav-link" href="#parameter-prediction" style="font-size: 1.1rem; font-weight: 500;">
+                            <i class="fas fa-chart-line me-1"></i>参数预测
+                        </a>
+                    </li>
+                    <li class="nav-item mx-2">
+                        <a class="nav-link" href="#result-analysis" style="font-size: 1.1rem; font-weight: 500;">
+                            <i class="fas fa-chart-bar me-1"></i>结果分析
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <div class="container-fluid">
+        <!-- 患者管理区域 -->
+        <section id="patient-management" class="mb-5">
+            <h2 class="section-title">患者管理</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card p-4">
+                        <h5 class="card-title mb-3">添加新患者</h5>
+                        <form id="add-patient-form">
+                            <div class="mb-3">
+                                <label for="patient-name" class="form-label">姓名</label>
+                                <input type="text" class="form-control" id="patient-name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="patient-gender" class="form-label">性别</label>
+                                <select class="form-select" id="patient-gender" required>
+                                    <option value="male">男</option>
+                                    <option value="female">女</option>
+                                    <option value="other">其他</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="patient-age" class="form-label">年龄</label>
+                                <input type="number" class="form-control" id="patient-age" min="0" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="patient-height" class="form-label">身高 (m)</label>
+                                <input type="number" class="form-control" id="patient-height" step="0.01" min="0">
+                            </div>
+                            <div class="mb-3">
+                                <label for="patient-weight" class="form-label">体重 (kg)</label>
+                                <input type="number" class="form-control" id="patient-weight" step="0.1" min="0">
+                            </div>
+                            <div class="mb-3">
+                                <label for="patient-history" class="form-label">病史</label>
+                                <textarea class="form-control" id="patient-history" rows="3"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">添加患者</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="card p-4">
+                        <h5 class="card-title mb-3">患者列表</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>姓名</th>
+                                        <th>性别</th>
+                                        <th>年龄</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="patient-table-body">
+                                    <!-- 患者数据将通过JavaScript动态加载 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 文件上传区域 -->
+        <section id="file-upload" class="mb-5">
+            <h2 class="section-title">STL文件上传</h2>
+            <div class="card p-4">
+                <div class="row">
+                    <div class="col-md-6">
+                        <form id="stl-upload-form">
+                            <div class="mb-3">
+                                <label for="patient-select" class="form-label">选择患者</label>
+                                <select class="form-select" id="patient-select" required>
+                                    <option value="">-- 请选择患者 --</option>
+                                    <!-- 患者选项将通过JavaScript动态加载 -->
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="stl-file" class="form-label">选择STL文件</label>
+                                <input type="file" class="form-control" id="stl-file" accept=".stl" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">上传文件</button>
+                        </form>
+                    </div>
+                    <div class="col-md-6">
+                        <h5 class="card-title mb-3">已上传文件</h5>
+                        <div id="uploaded-files-list">
+                            <!-- 上传文件列表将通过JavaScript动态加载 -->
+                            <div class="alert alert-info">请先选择患者查看已上传文件</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3D可视化区域 -->
+        <section id="3d-visualization" class="mb-5">
+            <h2 class="section-title">3D模型可视化</h2>
+            <div class="card p-4">
+                <div class="mb-3">
+                    <label for="stl-upload" class="form-label">上传STL文件</label>
+                    <input type="file" class="form-control" id="stl-upload" accept=".stl" required>
+                    <div class="mt-2">
+                        <button id="upload-stl-btn" class="btn btn-primary">上传并显示</button>
+                    </div>
+                </div>
+                <div id="model-info">
+                    <div class="card mb-3 model-info-card">
+                        <div class="card-body">
+                            <h5 class="card-title">模型信息</h5>
+                            <div class="patient-Info-box">
+                                <p class="card-text"><strong>文件名:</strong> <span class="file-name"></span></p>
+                                <!-- <p class="card-text"><strong>患者姓名:</strong> <span class="patient-name"></span></p> -->
+                                <p class="card-text"><strong>来源:</strong> <span class="patient-id">自上传文件，无需绑定患者</span>
+                                </p>
+                                <p class="card-text"><strong>上传时间:</strong> <span class="upload-time"></span></p>
+                                <p class="card-text"><strong>文件大小:</strong> <span class="file-size"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="stlViewer"></div>
+                <div class="mt-3 point-cloud-box">
+                    <button id="convert-to-point-cloud" class="btn btn-secondary" disabled>转换为点云</button>
+                    <div class="prediction-Info-box">
+                        <div class="logs-title">转换日志</div>
+                        <div id="point-cloud-logs">
+                            暂没有日志记录！
+                        </div>
+                    </div>
+
+                </div>
+                <div class="convert-point-show-box">
+                    <div class="point-show-title">转换后的 点云可视化</div>
+                    <div id="convert-point-show">
+
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 参数预测区域 -->
+        <section id="parameter-prediction" class="mb-5">
+            <h2 class="section-title">血流动力学参数预测</h2>
+            <div class="card p-4">
+                <div class="mb-3">
+                    <label for="prediction-file-select" class="form-label prediction-range-title">输入待预测的时间(s):</label>
+                    <input type="range" class="form-range" id="prediction-range" min="0.1" max="1.6" step="0.1" value="0.1"
+                        >
+                    <span id="range-value">0.1</span>
+
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <button id="run-prediction" class="btn btn-primary" disabled>运行预测模型</button>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="loading">
+                            <div class="spinner-border text-primary loading-spinner" role="status"></div>
+                            <div class="mt-2">预测中，请稍候...</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="prediction-results" class="mt-4">
+                    <!-- 预测结果将通过JavaScript动态加载 -->
+                    <div class="alert alert-info">请先选择处理后的模型并运行预测</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 结果分析区域 -->
+        <section id="result-analysis" class="mb-5">
+            <h2 class="section-title">结果分析与可视化</h2>
+            <div class="card p-4">
+                <div class="model-info">
+                    <p class="card-text"><strong>模型名称:</strong> <span class="model-info-name"></span></p>
+                    <p class="card-text"><strong>模型预测时间:</strong> <span class="model-predict-info-time"></span></p>
+                </div>
+                <div class="row">
+                    <div class="col-md-11">
+                        <h5 class="card-title mb-3">速度分布</h5>
+                        <div id="velocity-chart" class="echarts-container"></div>
+                    </div>
+                    <div class="col-md-1 color-bar-box">
+                        <h5 id="velocity-max-title" class="color-bar-title-max">最大速度</h5>
+                        <div id="velocity-chart-color-bar"></div>
+                        <h5 id="velocity-min-title" class="color-bar-title-min">最小速度</h5>
+                    </div>
+                    <div class="col-md-11">
+                        <h5 class="card-title mb-3">压力分布</h5>
+                        <div id="pressure-chart" class="echarts-container"></div>
+                    </div>
+                    <div class="col-md-1 color-bar-box">
+                        <h5 id="pressure-max-title" class="color-bar-title-max">最大压力</h5>
+                        <div id="pressure-chart-color-bar"></div>
+                        <h5 id="pressure-min-title" class="color-bar-title-min">最小压力</h5>
+                    </div>
+                    <div class="yishengshuru col-md-12">
+                        <div class="yishengshuru-title">诊疗建议</div>
+                        <textarea name="yishengshurukuang" id="yishengshurukuang" cols="100" rows="20"> ​
+                            ​一、核心风险提示​​
+                            ​​血流紊乱风险​​
+                            图中红色高值区（速度、压力）集中在颈动脉蹼局部，表明此处存在​​湍流和血流剪切力升高​​，易导致血管内皮损伤。
+                            ​​血栓形成倾向​​
+                            高速血流冲击+高压区可能激活血小板聚集，需警惕附壁血栓形成，增加​​脑卒中风险​​。
+                            ​​血管结构异常​​
+                            压力差明显（峰值差>1000pa），提示蹼状结构对血流造成显著阻力，可能加速局部粥样硬化。
+                            
+                            ​​二、诊疗建议​​
+                            1. ​​紧急评估措施​​
+                            ​​超声造影检查​​：明确颈动脉蹼形态及是否存在微小血栓。
+                            ​​颅脑MRI（DWI序列）​​：排查无症状性脑梗死（尤其近期有头晕、黑曚患者）。
+                            ​​24小时动态心电图​​：排除房颤等心源性栓塞因素（协同卒中风险）。
+                            2. ​​症状干预策略​​
+                            ​​若存在缺血症状​​（如短暂性黑曚、肢体无力）：
+                            ​​手术优先​​：推荐颈动脉内膜切除术（CEA）或血管内支架置入术，恢复血管正常血流动力学。
+                            ​​禁忌证替代方案​​：对手术高风险患者，考虑颈动脉球囊扩张成形术。
+                            ​​无症状但血栓高危者​​：
+                            ​​强化抗栓治疗​​：阿司匹林（100mg/日）+ 氯吡格雷（75mg/日）双抗3个月，后改为单药长期维持。</textarea>
+                        <button class="button-primary jianyibutton">提交</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- JavaScript脚本 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
